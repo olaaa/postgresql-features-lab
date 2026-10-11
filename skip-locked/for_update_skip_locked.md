@@ -18,12 +18,22 @@ psql -d bank_transactions -f skip-locked/02_notification_jobs_data.sql
 по два задания (PUSH и SMS), по операциям 3–8 по одному: всего 10 заданий. `02_notification_jobs_data.sql` возвращает
 очередь в исходное состояние, его надо выполнять перед каждым сценарием.
 
+Сессия — это отдельное соединение с базой, у каждой своя транзакция. В DataGrip это две консоли:
+[session_a.sql](session_a.sql) и [session_b.sql](session_b.sql). Шаги пронумерованы сквозь обе консоли: выполняй их по
+одному в порядке номеров. Транзакции в скриптах открываются явно (`BEGIN`) и закрываются `COMMIT` или `ROLLBACK`.
+
+Все сценарии прогнаны скриптом на двух настоящих соединениях к PostgreSQL 16 и 14; результаты ниже — из этих прогонов,
+на обеих версиях они одинаковые.
+
 ### Что делает setval в конце 02_notification_jobs_data.sql
 
-Последняя строка скрипта:
+Последняя команда скрипта:
 
 ```sql
-SELECT setval(pg_get_serial_sequence('notification_jobs', 'id'), (SELECT max(id) FROM notification_jobs));
+SELECT setval(
+    pg_get_serial_sequence('notification_jobs', 'id'),
+    (SELECT max(id) FROM notification_jobs)
+);
 ```
 
 Чтобы понять, зачем она, нужно знать, откуда берутся номера `id`.
@@ -41,7 +51,7 @@ SELECT setval(pg_get_serial_sequence('notification_jobs', 'id'), (SELECT max(id)
 счётчик всё ещё в самом начале, и следующая вставка без `id` получит номер 1. Он уже занят, поэтому вставка упадёт:
 `duplicate key value violates unique constraint "notification_jobs_pkey"`.
 
-**Что делает строка, по частям изнутри наружу:**
+**Что делает команда, по частям изнутри наружу:**
 
 - `pg_get_serial_sequence('notification_jobs', 'id')` возвращает имя последовательности колонки `id`:
   `public.notification_jobs_id_seq`. Так не нужно помнить, как PostgreSQL её назвал.
@@ -52,7 +62,7 @@ SELECT setval(pg_get_serial_sequence('notification_jobs', 'id'), (SELECT max(id)
 
 **Причём тут TRUNCATE.** `TRUNCATE notification_jobs` удаляет строки, но счётчик не трогает: так он работает по
 умолчанию, а сбросить счётчик можно, только дописав `RESTART IDENTITY`. Поэтому при повторных запусках скрипта счётчик
-уже не меньше 10, и `setval` просто ставит его на 10 снова. По-настоящему строка нужна при первом запуске, на свежей
+уже не меньше 10, и `setval` просто ставит его на 10 снова. По-настоящему эта команда нужна при первом запуске, на свежей
 таблице.
 
 **Как посмотреть самой.** Состояние счётчика:
@@ -73,13 +83,6 @@ RETURNING id;
 ```
 
 Вернётся `id = 11`. Это лишнее задание удалит следующий запуск `02_notification_jobs_data.sql`.
-
-Сессия — это отдельное соединение с базой, у каждой своя транзакция. В DataGrip это две консоли:
-[session_a.sql](session_a.sql) и [session_b.sql](session_b.sql). Шаги пронумерованы сквозь обе консоли: выполняй их по
-одному в порядке номеров. Транзакции в скриптах открываются явно (`BEGIN`) и закрываются `COMMIT` или `ROLLBACK`.
-
-Все сценарии прогнаны скриптом на двух настоящих соединениях к PostgreSQL 16 и 14; результаты ниже — из этих прогонов,
-на обеих версиях они одинаковые.
 
 ## Сценарии
 

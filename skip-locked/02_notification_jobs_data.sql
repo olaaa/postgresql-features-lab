@@ -25,4 +25,7 @@ VALUES (1, 1, 'PUSH'),
        (10, 8, 'PUSH');
 
 -- id вставлены явно, поэтому сдвигаем последовательность за максимальный id.
-SELECT setval(pg_get_serial_sequence('notification_jobs', 'id'), (SELECT max(id) FROM notification_jobs));
+SELECT setval(
+    pg_get_serial_sequence('notification_jobs', 'id'),
+    (SELECT max(id) FROM notification_jobs)
+);
