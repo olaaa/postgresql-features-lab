@@ -1,7 +1,7 @@
 -- Шаг 2. DDL таблицы transactions.
 -- Выполнять в базе bank_transactions:
--- psql -d bank_transactions -f 02_schema.sql
--- Таблица создаётся в схеме public, поэтому запросы в all.sql работают без указания схемы.
+-- psql -d bank_transactions -f setup/02_transactions_schema.sql   (из корня проекта)
+-- Таблица создаётся в схеме public, поэтому запросы во всех папках проекта работают без указания схемы.
 
 CREATE TABLE IF NOT EXISTS transactions
 (
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS transactions
     counterparty_id bigint                   NOT NULL
 );
 
--- Покрывающий индекс под ленту операций счёта, разбор: transactions_account_covering_idx.md
+-- Покрывающий индекс под ленту операций счёта, разбор: covering-index/transactions_account_covering_idx.md
 CREATE INDEX IF NOT EXISTS transactions_account_covering_idx
     ON transactions (account_id, created_at DESC)
     INCLUDE (amount, currency, direction);

@@ -1,6 +1,6 @@
 -- Шаг 3. Тестовые данные: 20 операций по трём счетам.
--- Выполнять в базе bank_transactions после 02_schema.sql:
--- psql -d bank_transactions -f 03_data.sql
+-- Выполнять в базе bank_transactions после 02_transactions_schema.sql:
+-- psql -d bank_transactions -f setup/03_transactions_data.sql   (из корня проекта)
 -- Скрипт можно запускать повторно: существующие id пропускаются.
 
 INSERT INTO transactions (id, account_id, amount, currency, direction, created_at, status, description, counterparty_id)

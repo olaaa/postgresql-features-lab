@@ -1,3 +1,6 @@
+-- RETURNING и IS DISTINCT FROM: идемпотентные UPDATE и INSERT.
+-- Выполнять в базе bank_transactions после скриптов из папки setup.
+
 SELECT *
 FROM transactions
 WHERE id = 1;
