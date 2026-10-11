@@ -24,7 +24,8 @@
 - DDL: таблицы и индексы — `CREATE … IF NOT EXISTS`, типы — простым `CREATE TYPE`, без блока `DO` (решение Лелы
   2026-10-12). У `CREATE TYPE` нет `IF NOT EXISTS`, поэтому скрипт с типом выполняется один раз на чистой базе, а
   повторный запуск падает с ошибкой «type … already exists»; это сказано в шапке скрипта.
-- Скрипты данных и сброса можно запускать повторно: `INSERT … ON CONFLICT … DO NOTHING`, `UPDATE`.
+- Скрипты данных и сброса можно запускать повторно: `INSERT … ON CONFLICT … DO NOTHING` (`setup/03`) или
+  `TRUNCATE` и вставка заново (`skip-locked/02`, решение Лелы 2026-10-12).
 - Статусы — перечисляемые типы (`CREATE TYPE … AS ENUM`), а не `text` с `CHECK` (решение Лелы 2026-10-12):
   `transaction_status`, `notification_job_state`. Новый статус — новый enum. `channel` и `direction` — не статусы.
 - В шапке скрипта: что он делает, в какой базе и после каких скриптов выполнять, команда `psql`.

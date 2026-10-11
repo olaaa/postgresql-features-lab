@@ -35,7 +35,8 @@
 - `CREATE DATABASE … TEMPLATE template0`;
 - перечисляемые типы `CREATE TYPE … AS ENUM` для статусов (`transaction_status`, `notification_job_state`);
 - `bigserial`, `setval` и `pg_get_serial_sequence` после вставки с явными `id`;
-- повторно запускаемые скрипты данных: `ON CONFLICT (id) DO NOTHING`.
+- повторно запускаемые скрипты данных: `ON CONFLICT (id) DO NOTHING` в `setup`, `TRUNCATE` и вставка заново
+  в `skip-locked`.
 
 ## Подготовка
 
