@@ -3,7 +3,8 @@
 -- psql -d bank_transactions -f setup/03_transactions_data.sql   (из корня проекта)
 -- Скрипт можно запускать повторно: существующие id пропускаются.
 
-INSERT INTO transactions (id, account_id, amount, currency, direction, created_at, status, description, counterparty_id)
+INSERT INTO transactions (id, account_id, amount, currency, direction,
+                          created_at, status, description, counterparty_id)
 VALUES (1, 1001, 50000.00, 'RUB', 'C', '2026-03-13 05:46:27.056442+04', 'COMPLETED', 'Зарплата за январь', 2001),
        (2, 1001, 3200.00, 'RUB', 'D', '2026-03-13 05:46:27.056442+04', 'COMPLETED', 'Оплата ЖКХ', 2002),
        (3, 1001, 1500.00, 'RUB', 'D', '2026-03-13 05:46:27.056442+04', 'COMPLETED', 'Кофейня на Арбате', 2003),
