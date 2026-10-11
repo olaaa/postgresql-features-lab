@@ -1,19 +1,11 @@
 -- Очередь заданий notification_jobs для примеров FOR UPDATE SKIP LOCKED.
--- Выполнять в базе bank_transactions после setup/02_transactions_schema.sql, из корня проекта:
+-- Выполнять один раз в базе bank_transactions после setup/02_transactions_schema.sql, из корня проекта.
+-- У CREATE TYPE нет IF NOT EXISTS, и повторный запуск упадёт с ошибкой «type "notification_job_state" already exists».
 -- psql -d bank_transactions -f skip-locked/01_notification_jobs_schema.sql
 -- Разбор и сценарии: for_update_skip_locked.md
 
 -- Состояние задания: READY — ждёт исполнителя, RUNNING — захвачено, DONE — выполнено, FAILED — исчерпаны попытки.
--- У CREATE TYPE нет IF NOT EXISTS, поэтому тип создаётся в блоке DO: при повторном запуске ошибка duplicate_object
--- перехватывается, и скрипт можно запускать повторно.
-DO
-$$
-    BEGIN
-        CREATE TYPE notification_job_state AS ENUM ('READY', 'RUNNING', 'DONE', 'FAILED');
-    EXCEPTION
-        WHEN duplicate_object THEN NULL;
-    END
-$$;
+CREATE TYPE notification_job_state AS ENUM ('READY', 'RUNNING', 'DONE', 'FAILED');
 
 -- Задание — «отправить клиенту уведомление об операции» по каналу PUSH или SMS.
 -- attempt — номер захвата: растёт при каждом захвате и служит fencing token (номером поколения).

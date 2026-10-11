@@ -1,19 +1,11 @@
 -- Шаг 2. DDL таблицы transactions.
--- Выполнять в базе bank_transactions:
+-- Выполнять в чистой базе bank_transactions: у CREATE TYPE нет IF NOT EXISTS, и повторный запуск упадёт
+-- с ошибкой «type "transaction_status" already exists».
 -- psql -d bank_transactions -f setup/02_transactions_schema.sql   (из корня проекта)
 -- Таблица создаётся в схеме public, поэтому запросы во всех папках проекта работают без указания схемы.
 
 -- Статус операции: PENDING — создана, PROCESSING — в обработке, COMPLETED — проведена.
--- У CREATE TYPE нет IF NOT EXISTS, поэтому тип создаётся в блоке DO: при повторном запуске ошибка duplicate_object
--- перехватывается, и скрипт можно запускать повторно.
-DO
-$$
-    BEGIN
-        CREATE TYPE transaction_status AS ENUM ('PENDING', 'PROCESSING', 'COMPLETED');
-    EXCEPTION
-        WHEN duplicate_object THEN NULL;
-    END
-$$;
+CREATE TYPE transaction_status AS ENUM ('PENDING', 'PROCESSING', 'COMPLETED');
 
 CREATE TABLE IF NOT EXISTS transactions
 (

@@ -33,10 +33,9 @@
 **Подготовка базы** — [setup](setup):
 
 - `CREATE DATABASE … TEMPLATE template0`;
-- перечисляемые типы `CREATE TYPE … AS ENUM` для статусов (`transaction_status`, `notification_job_state`) и повторный
-  запуск `CREATE TYPE` через блок `DO` с перехватом `duplicate_object`;
+- перечисляемые типы `CREATE TYPE … AS ENUM` для статусов (`transaction_status`, `notification_job_state`);
 - `bigserial`, `setval` и `pg_get_serial_sequence` после вставки с явными `id`;
-- повторно запускаемые скрипты: `CREATE … IF NOT EXISTS`, `ON CONFLICT (id) DO NOTHING`.
+- повторно запускаемые скрипты данных: `ON CONFLICT (id) DO NOTHING`.
 
 ## Подготовка
 
@@ -49,7 +48,8 @@ psql -d bank_transactions -f setup/03_transactions_data.sql
 ```
 
 `01` создаёт базу (выполняется из служебной базы `postgres`), `02` — таблицу `transactions` и покрывающий индекс,
-`03` — 20 тестовых операций. `02` и `03` можно запускать повторно.
+`03` — 20 тестовых операций. `02` выполняется один раз на чистой базе: у `CREATE TYPE` нет `IF NOT EXISTS`, и повторный
+запуск падает с ошибкой «type already exists». `03` можно запускать повторно.
 
 Таблица `notification_jobs` из темы `skip-locked` ссылается на `transactions` внешним ключом, поэтому эта тема тоже
 требует скриптов из `setup`. Свои скрипты у неё — в той же папке.
