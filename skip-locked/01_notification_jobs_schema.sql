@@ -3,8 +3,19 @@
 -- psql -d bank_transactions -f skip-locked/01_notification_jobs_schema.sql
 -- Разбор и сценарии: for_update_skip_locked.md
 
+-- Состояние задания: READY — ждёт исполнителя, RUNNING — захвачено, DONE — выполнено, FAILED — исчерпаны попытки.
+-- У CREATE TYPE нет IF NOT EXISTS, поэтому тип создаётся в блоке DO: при повторном запуске ошибка duplicate_object
+-- перехватывается, и скрипт можно запускать повторно.
+DO
+$$
+    BEGIN
+        CREATE TYPE notification_job_state AS ENUM ('READY', 'RUNNING', 'DONE', 'FAILED');
+    EXCEPTION
+        WHEN duplicate_object THEN NULL;
+    END
+$$;
+
 -- Задание — «отправить клиенту уведомление об операции» по каналу PUSH или SMS.
--- state: READY — ждёт исполнителя, RUNNING — захвачено, DONE — выполнено, FAILED — исчерпаны попытки.
 -- attempt — номер захвата: растёт при каждом захвате и служит fencing token (номером поколения).
 -- lease_until — до какого момента захват действителен (аренда).
 CREATE TABLE IF NOT EXISTS notification_jobs
@@ -12,8 +23,7 @@ CREATE TABLE IF NOT EXISTS notification_jobs
     id             bigserial PRIMARY KEY,
     transaction_id bigint                   NOT NULL REFERENCES transactions (id),
     channel        text                     NOT NULL CHECK (channel IN ('PUSH', 'SMS')),
-    state          text                     NOT NULL DEFAULT 'READY'
-        CHECK (state IN ('READY', 'RUNNING', 'DONE', 'FAILED')),
+    state          notification_job_state   NOT NULL DEFAULT 'READY',
     attempt        integer                  NOT NULL DEFAULT 0,
     worker         text,
     lease_until    timestamp with time zone,

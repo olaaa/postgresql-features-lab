@@ -33,6 +33,8 @@
 **Подготовка базы** — [setup](setup):
 
 - `CREATE DATABASE … TEMPLATE template0`;
+- перечисляемые типы `CREATE TYPE … AS ENUM` для статусов (`transaction_status`, `notification_job_state`) и повторный
+  запуск `CREATE TYPE` через блок `DO` с перехватом `duplicate_object`;
 - `bigserial`, `setval` и `pg_get_serial_sequence` после вставки с явными `id`;
 - повторно запускаемые скрипты: `CREATE … IF NOT EXISTS`, `ON CONFLICT (id) DO NOTHING`.
 
