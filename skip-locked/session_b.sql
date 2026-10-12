@@ -22,7 +22,7 @@ ROLLBACK;
 -- (2.1, 2.2 — в сессии A)
 -- 2.3
 BEGIN;
--- 2.4 → зависает, затем (2, 1, SMS)
+-- 2.4 → зависает, затем выберет (2, 1, SMS)
 SELECT id, transaction_id, channel
 FROM notification_jobs
 WHERE state = 'READY'
@@ -52,14 +52,14 @@ ROLLBACK;
 -- (4.1, 4.2 — в сессии A)
 -- 4.3
 BEGIN;
--- 4.4 → (1, 1, PUSH)
+-- 4.4 → (1, 1, PUSH) выбрано то же, что в сессии A
 SELECT id, transaction_id, channel
 FROM notification_jobs
 WHERE state = 'READY'
 ORDER BY id
 LIMIT 1;
 -- (4.5 — в сессии A)
--- 4.6 → зависает, затем пусто
+-- 4.6 → зависает до коммита в сессии A, затем пусто
 UPDATE notification_jobs
 SET state      = 'RUNNING',
     attempt    = attempt + 1,
@@ -69,7 +69,7 @@ WHERE id = 1
   AND state = 'READY'
 RETURNING id, attempt;
 -- (4.7 — в сессии A)
--- 4.8 → (2, 1, SMS)
+-- 4.8 идёт на новый круг → (2, 1, SMS)
 SELECT id, transaction_id, channel
 FROM notification_jobs
 WHERE state = 'READY'
@@ -191,7 +191,7 @@ RETURNING id;
 -- (9.1, 9.2 — в сессии A)
 -- 9.3
 BEGIN;
--- 9.4 → (3, 2, PUSH, 3200.00)
+-- 9.4 (без `OF job`) → (3, 2, PUSH, 3200.00)
 SELECT job.id, job.transaction_id, job.channel, t.amount
 FROM notification_jobs AS job
          JOIN transactions AS t ON t.id = job.transaction_id
@@ -199,7 +199,7 @@ WHERE job.state = 'READY'
 ORDER BY job.id
 LIMIT 1
 FOR UPDATE SKIP LOCKED;
--- 9.5 → (2, 1, SMS, 50000.00)
+-- 9.5 (c `OF job`) → (2, 1, SMS, 50000.00)
 SELECT job.id, job.transaction_id, job.channel, t.amount
 FROM notification_jobs AS job
          JOIN transactions AS t ON t.id = job.transaction_id
